@@ -226,7 +226,7 @@ n_epoch = 100
 batches_per_epoch = 100
 
 losses = []
-for epoch in range(n_epoch):
+for epoch in tqdm(range(n_epoch)):
     for _ in range(batches_per_epoch):
         objects, sender_relations, receiver_relations, relation_info, target = get_batch(data, 30)
         predicted = interaction_network(objects, sender_relations, receiver_relations, relation_info)
@@ -234,16 +234,15 @@ for epoch in range(n_epoch):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        losses.append(np.sqrt(loss.data[0]))
+        losses.append(np.sqrt(loss.item()))
         
-    clear_output(True)
     plt.figure(figsize=(20,5))
     plt.subplot(131)
     plt.title('Epoch %s RMS Error %s' % (epoch, np.sqrt(np.mean(losses[-100:]))))
     plt.plot(losses)
-    plt.show()
-
-
+    #plt.show()
+    plt.savefig("plots/plot.png")
+    plt.close()
 # <h3>Also</h3>
 # <p>Use function make_video from PhysicsEngine.py to record dynamics</p>
 # <h3>Further reading:</h3>
