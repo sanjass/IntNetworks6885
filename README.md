@@ -1,4 +1,23 @@
 # Interaction-Network-Pytorch
+Code adapted from [here](https://github.com/higgsfield/interaction_network_pytorch)
+
+## Dependecies
+- Python3
+- Miniconda3/Anaconda3
+- Pytorch
+
+## Getting started
+1. Clone this repo:
+`git clone git@github.com:sanjass/IntNetworks6885.git`
+2. Create Conda environment:
+`conda env create -f environment.yml`
+3. Make sure you are cd'ed into the repo's root and run:
+ ` . ./start.sh` to activate the environment and set the PYTHONPATH.
+4. Run model for training:
+`python3 int_network.py`
+
+--------------------------------------------------
+
 Pytorch Implementraion of [Interaction Networks for Learning about Objects, Relations and Physics](https://arxiv.org/abs/1612.00222).
 
 #### Interaction Network is a powerful graph based framework for dynamic systems. It is able to simulate the physical trajectories of n-body, bouncing ball, and non-rigid string systems accurately over thousands of time steps, after training only on single step predictions.
