@@ -20,7 +20,7 @@ Code adapted from [here](https://github.com/higgsfield/interaction_network_pytor
 
 Located in `data_processing.py`.
 
-Saves a numpy matrix of shape `(15000, 100, 5, 17)` which is `num_videos x num_frames x max_num_objects x max_num_features`
+Saves a numpy matrix of shape `(15000, 100, 5, 17)` which is `num_videos x num_frames x max_num_objects x num_features`
 The 17 features are:
 ```
 # FORMAT for features of an object:
