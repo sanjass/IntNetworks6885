@@ -16,6 +16,10 @@ Code adapted from [here](https://github.com/higgsfield/interaction_network_pytor
 4. Run model for training:
 `python3 int_network.py`
 
+## IntPhys data processing pipeline
+
+Located in data_processing.py.
+Saves a numpy matrix of shape (15000, 100, 5, 17) which is num_videos x num_frames x max_num_objects x max_num_features
 --------------------------------------------------
 
 Pytorch Implementraion of [Interaction Networks for Learning about Objects, Relations and Physics](https://arxiv.org/abs/1612.00222).
