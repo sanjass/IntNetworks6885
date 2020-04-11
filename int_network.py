@@ -65,7 +65,8 @@ data = gen(n_objects, True)
 # In[33]:
 
 
-print(data.shape) # 1000 timesteps, n_objects, 5 featues - mass, x, y, speed_x, speed_y
+print("Data shape: ", data.shape) 
+print("1000 timesteps, n_objects, 5 features - mass, x, y, speed_x, speed_y")
 
 
 # <h3>Batch</h3>
