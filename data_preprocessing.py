@@ -68,20 +68,32 @@ def featurize(obj_dict, is_occluder):
 	return result
 
 
-	
+
+def get_free_index(objname2index):
+	"""Get free index in the obj_name:idx map"""
+	values = set(objname2index.values())
+	possible_indices = set(range(5))
+	free = [pos for pos in possible_indices if pos not in values]
+	return free[0]
+
 
 def process_video(video_path, max_obj):
 	"""Returns a matrix of dim num_frames x max_obj x num_features"""
 	json_path = os.path.join(video_path, 'status.json')
 	frames = json.load(open(json_path, 'r'))['frames']
 	video_info = []
+	objname2index = dict() # object to idx in obj
 	for frame in frames:
 		frame_info = [[0 for _ in range(max(index_mapping.values())+1)] for _ in range(max_obj)]
-		for idx, obj in enumerate(frame):
-			if obj != "masks":
-				is_occluder = "occluder" in obj
-				obj_info = featurize(frame[obj], is_occluder)
-				frame_info[idx] = obj_info
+		for _, obj_name in enumerate(frame):
+			if obj_name != "masks":
+				is_occluder = "occluder" in obj_name
+				if obj_name not in objname2index:
+					index = get_free_index(objname2index)
+					objname2index[obj_name] = index
+
+				obj_info = featurize(frame[obj_name], is_occluder)
+				frame_info[objname2index[obj_name]] = obj_info
 		video_info.append(frame_info)
 	return video_info
 
@@ -106,7 +118,7 @@ def run_processing(data_folder, max_obj, outfile):
 
 if __name__ == "__main__":
 	data_folder = "../intphys/train"
-	outfile = "data/featurized_train.npy"
+	outfile = "data/train.npy"
 	max_obj = get_max_num_obj(data_folder)
 	run_processing(data_folder, max_obj, outfile)
 	
