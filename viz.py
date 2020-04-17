@@ -16,7 +16,7 @@ def plot_object(ax, center_x, center_y, center_z, radius, color, title):
 	alpha = 0.3
 	u = np.linspace(0, 2 * np.pi, 50)
 	v = np.linspace(0, np.pi, 50)
-	limit = 2000
+	limit = 800
 
 	x = radius * np.outer(np.cos(u), np.sin(v)) + center_x
 	y = radius * np.outer(np.sin(u), np.sin(v)) + center_y
