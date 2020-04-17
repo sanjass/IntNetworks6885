@@ -77,13 +77,19 @@ class ObjectModel(nn.Module):
 class InteractionNetwork(nn.Module):
     def __init__(self, n_objects, object_dim, n_relations, relation_dim, effect_dim):
         super(InteractionNetwork, self).__init__()
-        
+
         self.relational_model = RelationalModel(2*object_dim + relation_dim, effect_dim, 150)
         self.object_model     = ObjectModel(object_dim + effect_dim, 100, object_dim)
         self.n_objects = n_objects
         self.object_dim = object_dim
     
     def forward(self, objects, sender_relations, receiver_relations, relation_info):
+        if len(sender_relations.shape) ==2 :
+            sender_relations.unsqueeze_(0)
+        if len(receiver_relations.shape)==2 :
+            receiver_relations.unsqueeze_(0)
+        if len(relation_info.shape) == 2:
+            relation_info.unsqueeze_(0)
         senders   = sender_relations.permute(0, 2, 1).bmm(objects)
         receivers = receiver_relations.permute(0, 2, 1).bmm(objects)
         effects = self.relational_model(torch.cat([senders, receivers, relation_info], 2))

@@ -13,80 +13,18 @@ from torch.autograd import Variable
 
 from utils import get_dataloader
 from models import InteractionNetwork 
-
-USE_CUDA = True
-
-
+from hyperparams import *
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
-
-n_objects  = 5 # number of planets(nodes)
-object_dim = 17 
-
-n_relations  = n_objects * (n_objects - 1) # number of edges in fully connected graph
-relation_dim = 1
-
-effect_dim = 100 #effect's vector size
-
-batch_size = 1024
 
 # data = gen(n_objects, True)
 
 data = np.load(os.path.join("data","featurized_train.npy"))
 
 print("Data shape: ", data.shape) 
-train_dataloader, validation_dataloader = get_dataloader(data, batch_size, USE_CUDA, object_dim, n_objects, n_relations, relation_dim)
-
-
-# def get_batch(data, batch_size):
-#     rand_idx  = [random.randint(0, len(data) - 2) for _ in range(batch_size)]
-#     label_idx = [idx + 1 for idx in rand_idx]
-    
-#     batch_data = data[rand_idx] 
-#     label_data = data[label_idx]
-    
-#     #objects = batch_data[:,:,:5]
-#     objects = batch_data
-    
-    
-#     #receiver_relations, sender_relations - onehot encoding matrices
-#     #each column indicates the receiver and sender object’s index
-    
-#     receiver_relations = np.zeros((batch_size, n_objects, n_relations), dtype=float);
-#     sender_relations   = np.zeros((batch_size, n_objects, n_relations), dtype=float);
-    
-#     cnt = 0
-#     for i in range(n_objects):
-#         for j in range(n_objects):
-#             if(i != j):
-#                 receiver_relations[:, i, cnt] = 1.0
-#                 sender_relations[:, j, cnt]   = 1.0
-#                 cnt += 1
-    
-#     #There is no relation info in solar system task, just fill with zeros
-#     relation_info = np.zeros((batch_size, n_relations, relation_dim))
-#    # target = label_data[:,:,3:]
-#     target = label_data
-    
-#     objects            = Variable(torch.FloatTensor(objects))
-#     sender_relations   = Variable(torch.FloatTensor(sender_relations))
-#     receiver_relations = Variable(torch.FloatTensor(receiver_relations))
-#     relation_info      = Variable(torch.FloatTensor(relation_info))
-# #    target             = Variable(torch.FloatTensor(target)).view(-1, 2)
-#     target             = Variable(torch.FloatTensor(target)).view(-1, object_dim)
-
-                       
-#     if USE_CUDA:
-#         objects            = objects.cuda()
-#         sender_relations   = sender_relations.cuda()
-#         receiver_relations = receiver_relations.cuda()
-#         relation_info      = relation_info.cuda()
-#         target             = target.cuda()
-    
-#     return objects, sender_relations, receiver_relations, relation_info, target
-
+train_dataloader, validation_dataloader = get_dataloader(data, batch_size, USE_CUDA, object_dim, n_objects, relation_dim)
 
 # Relation-centric Neural Network
 # This NN takes all information about relations in the graph and outputs effects of all interactions between objects.
@@ -115,7 +53,7 @@ def validate(validation_loader, model, criterion):
 
 
 
-n_epoch = 100
+n_epoch = 200
 batches_per_epoch = 100
 
 all_train_losses = []

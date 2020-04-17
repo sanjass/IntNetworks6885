@@ -77,7 +77,7 @@ def get_free_index(objname2index):
 	return free[0]
 
 
-def process_video(video_path, max_obj):
+def process_video(video_path, max_obj=5):
 	"""Returns a matrix of dim num_frames x max_obj x num_features"""
 	json_path = os.path.join(video_path, 'status.json')
 	frames = json.load(open(json_path, 'r'))['frames']
