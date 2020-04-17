@@ -16,14 +16,14 @@ def plot_object(ax, center_x, center_y, center_z, radius, color):
 	alpha = 0.5
 	u = np.linspace(0, 2 * np.pi, 50)
 	v = np.linspace(0, np.pi, 50)
-	limit = 1000
+	limit = 800
 
 	x = radius * np.outer(np.cos(u), np.sin(v)) + center_x
 	y = radius * np.outer(np.sin(u), np.sin(v)) + center_y
 	z = radius * np.outer(np.ones(np.size(u)), np.cos(v)) + center_z
 
 	sphere = ax.plot_surface(x, y, z, color=color, alpha=alpha, shade=30)
-	ax.set_xlim(-limit, limit)
+	ax.set_xlim(-limit,limit)
 	ax.set_ylim(-limit,limit)
 	ax.set_zlim(-limit,limit)
 
@@ -70,17 +70,18 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 	
 
 	#fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(7, 3.5))
-	colors = ['r','b','g','y','o']
+	colors = ['r','b','g','y','k']
 
 	if not os.path.exists(save_dir):
 		os.mkdir(save_dir)
 
 	for frame_idx in tqdm(range(len(ground_truths))):
 		fig = plt.figure(figsize=(10, 3.5))
-		ax1 = fig.add_subplot(111, projection='3d')
+		ax1 = fig.add_subplot(121, projection='3d')
 		ax2 = fig.add_subplot(122, projection='3d')
 		ground_truth_objects = ground_truths[frame_idx].squeeze_(0)
 		predicted_objects = predictions[frame_idx][0].squeeze_(0)
+		radius = 100
 
 		for obj_idx in range(ground_truth_objects.shape[0]):
 			obj_gr = ground_truth_objects[obj_idx]
@@ -88,11 +89,12 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 
 			if obj_gr[0] == 1: # object is present
 				loc_x, loc_y, loc_z = obj_gr[2].item(), obj_gr[3].item(), obj_gr[4].item()
-				plot_object(ax1, loc_x, loc_y, loc_z, 20, colors[obj_idx])
+				plot_object(ax1, loc_x, loc_y, loc_z, radius, colors[obj_idx])
 
 			if obj_pr[0] == 1: # object is present
+			#if True:
 				loc_x, loc_y, loc_z = obj_pr[2].item(), obj_pr[3].item(), obj_pr[4].item()
-				plot_object(ax2, loc_x, loc_y, loc_z, 20, colors[obj_idx])
+				plot_object(ax2, loc_x, loc_y, loc_z, radius, colors[obj_idx])
 
 		plt.savefig(os.path.join(save_dir, 'frame_{:02}.png'.format(frame_idx)))
 		plt.close()
@@ -101,7 +103,7 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 
 
 if __name__ == "__main__":
-	video_path = "../intphys/train/15000"
+	video_path = "../intphys/train/00001"
 	ground_truths, predictions = analyze_video(video_path)
 	# print("ground truths: ",ground_truths)
 	# print("predictions : ", predictions)
