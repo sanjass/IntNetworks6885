@@ -94,6 +94,7 @@ def process_video(video_path, max_obj=5):
 
 				obj_info = featurize(frame[obj_name], is_occluder)
 				frame_info[objname2index[obj_name]] = obj_info
+
 		video_info.append(frame_info)
 	return video_info
 
@@ -109,6 +110,7 @@ def run_processing(data_folder, max_obj, outfile):
 		video_info = process_video(video_path, max_obj)
 		final_result.append(video_info)
 		pbar.update()
+	#print(final_result[0])
 	final_np = np.array(final_result)
 	print("Final result has shape: {}".format(final_np.shape))
 	print("Sample video representation: {}".format(final_np[randint(0, final_np.shape[0])]))

@@ -53,7 +53,8 @@ def analyze_video(video_path):
 	model = load_model("ckpts/ckpts_71.p")
 	video_info = process_video(video_path)
 	data = np.array([video_info])
-	dataloader, _ = get_dataloader(data, 1, USE_CUDA, object_dim, n_objects, relation_dim, validation_split=0)
+	#print([data[0][i][0][2] for i in range(data.shape[1])])
+	dataloader, _ = get_dataloader(data, 1, USE_CUDA, object_dim, n_objects, relation_dim, validation_split=0, shuffle_dataset=False)
 	ground_truths = []
 
 	for idx, tup in enumerate(dataloader):
@@ -83,7 +84,7 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 		ground_truth_objects = ground_truths[frame_idx].squeeze_(0)
 		predicted_objects = predictions[frame_idx][0].squeeze_(0)
 		radius = 200
-
+		
 		for obj_idx in range(ground_truth_objects.shape[0]):
 			obj_gr = ground_truth_objects[obj_idx]
 			obj_pr = predicted_objects[obj_idx]
