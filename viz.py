@@ -1,4 +1,3 @@
-import numpy as np
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d
 from hyperparams import *
@@ -8,15 +7,16 @@ from data_preprocessing import process_video
 from utils import get_dataloader
 import os
 from tqdm import tqdm
+from utils import save_video
+import numpy as np
 
 
+def plot_object(ax, center_x, center_y, center_z, radius, color, title):
 
-def plot_object(ax, center_x, center_y, center_z, radius, color):
-
-	alpha = 0.5
+	alpha = 0.3
 	u = np.linspace(0, 2 * np.pi, 50)
 	v = np.linspace(0, np.pi, 50)
-	limit = 800
+	limit = 2000
 
 	x = radius * np.outer(np.cos(u), np.sin(v)) + center_x
 	y = radius * np.outer(np.sin(u), np.sin(v)) + center_y
@@ -26,6 +26,7 @@ def plot_object(ax, center_x, center_y, center_z, radius, color):
 	ax.set_xlim(-limit,limit)
 	ax.set_ylim(-limit,limit)
 	ax.set_zlim(-limit,limit)
+	ax.set_title(title)
 
 	#ax.plot_surface(xdata, ydata, zdata, rstride=3, cstride=3, color='b', shade=0.5)
 
@@ -70,7 +71,7 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 	
 
 	#fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(7, 3.5))
-	colors = ['r','b','g','y','k']
+	colors = ['r','b','g','y','m']
 
 	if not os.path.exists(save_dir):
 		os.mkdir(save_dir)
@@ -81,7 +82,7 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 		ax2 = fig.add_subplot(122, projection='3d')
 		ground_truth_objects = ground_truths[frame_idx].squeeze_(0)
 		predicted_objects = predictions[frame_idx][0].squeeze_(0)
-		radius = 100
+		radius = 200
 
 		for obj_idx in range(ground_truth_objects.shape[0]):
 			obj_gr = ground_truth_objects[obj_idx]
@@ -89,12 +90,13 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 
 			if obj_gr[0] == 1: # object is present
 				loc_x, loc_y, loc_z = obj_gr[2].item(), obj_gr[3].item(), obj_gr[4].item()
-				plot_object(ax1, loc_x, loc_y, loc_z, radius, colors[obj_idx])
+				plot_object(ax1, loc_x, loc_y, loc_z, radius*(obj_idx+1), colors[obj_idx], "ground truth")
 
-			if obj_pr[0] == 1: # object is present
+
+			if obj_pr[0] >= 0.5: # object is present
 			#if True:
 				loc_x, loc_y, loc_z = obj_pr[2].item(), obj_pr[3].item(), obj_pr[4].item()
-				plot_object(ax2, loc_x, loc_y, loc_z, radius, colors[obj_idx])
+				plot_object(ax2, loc_x, loc_y, loc_z, radius*(obj_idx+1), colors[obj_idx], "predicted")
 
 		plt.savefig(os.path.join(save_dir, 'frame_{:02}.png'.format(frame_idx)))
 		plt.close()
@@ -108,6 +110,7 @@ if __name__ == "__main__":
 	# print("ground truths: ",ground_truths)
 	# print("predictions : ", predictions)
 	plot_video(ground_truths, predictions)
+	save_video("sample/{}.mp4".format(video_path.split("/")[-1]), "videos")
 	# fig = plt.figure()
 	# ax = fig.add_subplot(111, projection='3d')
 	# plot_object(ax,2,3,4, 3,'b')

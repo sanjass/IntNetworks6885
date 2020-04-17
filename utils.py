@@ -4,6 +4,13 @@ import numpy as np
 from torch.utils.data.sampler import SubsetRandomSampler
 from hyperparams import *
 from models import InteractionNetwork 
+import skvideo.io
+from multiprocessing import Process, cpu_count
+from multiprocessing.pool import ThreadPool
+import glob
+import os
+import numpy as np
+from PIL import Image
 
 
 
@@ -37,3 +44,43 @@ def get_dataloader(data, batch_size, USE_CUDA=True, object_dim=100, n_objects=5,
 	validation_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
 	                                                sampler=valid_sampler)
 	return train_loader, validation_loader
+
+
+
+
+def make_video(save_path, ims, fps=10, duration=None):
+    """ 
+    Creates a video given an array of images. Uses FFMPEG backend.
+    Depending on the FFMPEG codec supported you might have to change pix_fmt
+    To change the quality of the saved videos, change -b (the encoding bitrate)
+    Args:
+      save_path: path to save the video
+      ims: an array of images
+      fps: frames per seconds to save the video
+      duration: the duration of the video, if not None, will override fps.
+    > ims = [im1, im2, im3]
+    > make_video('video.mp4', ims, fps=10)
+    """
+    print("Started making mp4 summary video")
+    if duration is not None:
+        fps = len(ims) / duration
+    skvideo.io.vwrite(save_path, ims,
+                      inputdict={'-r': str(fps)},
+                      outputdict={'-r': str(fps), 
+                                  '-pix_fmt': 'yuv420p',
+                                   '-vcodec': 'libx264', 
+                                  '-b': '10000000'}, verbosity=1)
+    print("Finished making mp4 summary video")
+    return
+
+
+
+
+
+
+def save_video(save_path, images_path):
+    images_files = sorted(glob.glob(os.path.join(images_path, "*.png")))
+    with ThreadPool(cpu_count() * 4) as p:
+        images = p.map(lambda x: np.array(Image.open(x)), images_files)
+
+    make_video(save_path, images, duration=10)
