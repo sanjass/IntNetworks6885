@@ -9,6 +9,7 @@ import os
 from tqdm import tqdm
 from utils import save_video
 import numpy as np
+import matplotlib.image as mpimg
 
 
 def plot_object(ax, center_x, center_y, center_z, radius, color, title):
@@ -16,7 +17,7 @@ def plot_object(ax, center_x, center_y, center_z, radius, color, title):
 	alpha = 0.3
 	u = np.linspace(0, 2 * np.pi, 50)
 	v = np.linspace(0, np.pi, 50)
-	limit = 800
+	limit = 1200
 
 	x = radius * np.outer(np.cos(u), np.sin(v)) + center_x
 	y = radius * np.outer(np.sin(u), np.sin(v)) + center_y
@@ -31,6 +32,10 @@ def plot_object(ax, center_x, center_y, center_z, radius, color, title):
 	#ax.plot_surface(xdata, ydata, zdata, rstride=3, cstride=3, color='b', shade=0.5)
 
 
+def plot_scene(img_path, ax):
+	my_img = mpimg.imread(img_path)
+	ax.imshow(my_img)
+	ax.set_title("ground truth")
 
 def get_predictions(initial_frame_objects, model=None):
 	if model is None:
@@ -49,7 +54,7 @@ def get_predictions(initial_frame_objects, model=None):
 	return predictions
 
 
-def analyze_video(video_path):
+def analyze_video(video_path, use_ground_truth=False):
 	model = load_model("ckpts/ckpts_71.p")
 	video_info = process_video(video_path)
 	data = np.array([video_info])
@@ -57,18 +62,36 @@ def analyze_video(video_path):
 	dataloader, _ = get_dataloader(data, 1, USE_CUDA, object_dim, n_objects, relation_dim, validation_split=0, shuffle_dataset=False)
 	ground_truths = []
 
-	for idx, tup in enumerate(dataloader):
-		dp, _ = tup
-		objects, _, _, _ = dp
-		if idx == 0:
-			predictions = get_predictions(objects.cpu(), model)
+	if use_ground_truth:
+		print("Using ground truth at time t to predict t+1")
 
-		ground_truths.append(objects)
+	if use_ground_truth:
+		predictions = []
+		for idx, tup in enumerate(dataloader):
+			dp, _ = tup
+			objects, _, _, _ = dp
+			ground_truths.append(objects)
+
+			dp, target = MyDataset.construct_input(objects.cpu(), USE_CUDA=False)
+			objects, sender_relations, receiver_relations, relation_info = dp
+
+			if idx == 0:
+				predictions.append(objects)
+			output = model(objects, sender_relations, receiver_relations, relation_info)
+			predictions.append(output)
+
+	else:
+		for idx, tup in enumerate(dataloader):
+			dp, _ = tup
+			objects, _, _, _ = dp
+			if idx == 0:
+				predictions = get_predictions(objects.cpu(), model)
+			ground_truths.append(objects)
 
 	return ground_truths, predictions
 
 
-def plot_video(ground_truths, predictions, save_dir="videos"):
+def plot_video(video_path, ground_truths, predictions, save_dir="videos"):
 	
 
 	#fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(7, 3.5))
@@ -76,11 +99,19 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 
 	if not os.path.exists(save_dir):
 		os.mkdir(save_dir)
+	
+	scenes = list(os.listdir(os.path.join(video_path, "scene")))
+	scenes.sort(key=lambda x: int(x.split("_")[1].split(".")[0]))
+
 
 	for frame_idx in tqdm(range(len(ground_truths))):
-		fig = plt.figure(figsize=(10, 3.5))
-		ax1 = fig.add_subplot(121, projection='3d')
-		ax2 = fig.add_subplot(122, projection='3d')
+		fig = plt.figure(figsize=(15, 4.0))
+		ax1 = fig.add_subplot(131)
+		ax2 = fig.add_subplot(132, projection='3d')
+		ax3 = fig.add_subplot(133, projection='3d')
+
+		plot_scene(os.path.join(video_path, "scene", scenes[frame_idx]), ax1)
+
 		ground_truth_objects = ground_truths[frame_idx].squeeze_(0)
 		predicted_objects = predictions[frame_idx][0].squeeze_(0)
 		radius = 200
@@ -91,13 +122,13 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 
 			if obj_gr[0] == 1: # object is present
 				loc_x, loc_y, loc_z = obj_gr[2].item(), obj_gr[3].item(), obj_gr[4].item()
-				plot_object(ax1, loc_x, loc_y, loc_z, radius*(obj_idx+1), colors[obj_idx], "ground truth")
+				plot_object(ax2, loc_x, loc_y, loc_z, radius*(obj_idx+1)*0.5, colors[obj_idx], "ground truth")
 
 
 			if obj_pr[0] >= 0.5: # object is present
 			#if True:
 				loc_x, loc_y, loc_z = obj_pr[2].item(), obj_pr[3].item(), obj_pr[4].item()
-				plot_object(ax2, loc_x, loc_y, loc_z, radius*(obj_idx+1), colors[obj_idx], "predicted")
+				plot_object(ax3, loc_x, loc_y, loc_z, radius*(obj_idx+1)*0.5, colors[obj_idx], "predicted")
 
 		plt.savefig(os.path.join(save_dir, 'frame_{:02}.png'.format(frame_idx)))
 		plt.close()
@@ -106,11 +137,11 @@ def plot_video(ground_truths, predictions, save_dir="videos"):
 
 
 if __name__ == "__main__":
-	video_path = "../intphys/train/00001"
-	ground_truths, predictions = analyze_video(video_path)
+	video_path = "../intphys/train/12340"
+	ground_truths, predictions = analyze_video(video_path, use_ground_truth=True)
 	# print("ground truths: ",ground_truths)
 	# print("predictions : ", predictions)
-	plot_video(ground_truths, predictions)
+	plot_video(video_path, ground_truths, predictions)
 	save_video("sample/{}.mp4".format(video_path.split("/")[-1]), "videos")
 	# fig = plt.figure()
 	# ax = fig.add_subplot(111, projection='3d')

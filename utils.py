@@ -43,9 +43,9 @@ def get_dataloader(data, batch_size, USE_CUDA=True, object_dim=100, n_objects=5,
 		valid_sampler = SequentialSampler(val_indices)
 
 	train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, 
-	                                           sampler=train_sampler, shuffle=shuffle_dataset)
+	                                           sampler=train_sampler)
 	validation_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
-	                                                sampler=valid_sampler, shuffle=shuffle_dataset)
+	                                                sampler=valid_sampler)
 	return train_loader, validation_loader
 
 

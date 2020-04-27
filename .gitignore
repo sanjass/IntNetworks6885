@@ -4,4 +4,5 @@ ckpts/*
 .Trash*
 sample/*
 videos/*
-intphys/*
+./intphys/*
+runs/*

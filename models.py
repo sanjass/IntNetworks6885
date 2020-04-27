@@ -11,6 +11,9 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+# Relation-centric Neural Network
+# This NN takes all information about relations in the graph and outputs effects of all interactions between objects.
+
 
 class RelationalModel(nn.Module):
     def __init__(self, input_size, output_size, hidden_size):
