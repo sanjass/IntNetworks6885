@@ -51,7 +51,7 @@ def get_dataloader(data, batch_size, USE_CUDA=True, object_dim=100, n_objects=5,
 
 
 
-def make_video(save_path, ims, fps=10, duration=None):
+def make_video(save_path, ims, fps=8, duration=None):
     """ 
     Creates a video given an array of images. Uses FFMPEG backend.
     Depending on the FFMPEG codec supported you might have to change pix_fmt

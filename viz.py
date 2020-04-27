@@ -39,7 +39,7 @@ def plot_scene(img_path, ax):
 
 def get_predictions(initial_frame_objects, model=None):
 	if model is None:
-		model = load_model("ckpts/ckpts_71.p")
+		model = load_model("ckpts/ckpts_200.p")
 
 	objects = initial_frame_objects
 	predictions = [objects]
@@ -70,15 +70,16 @@ def analyze_video(video_path, use_ground_truth=False):
 		for idx, tup in enumerate(dataloader):
 			dp, _ = tup
 			objects, _, _, _ = dp
-			ground_truths.append(objects)
 
 			dp, target = MyDataset.construct_input(objects.cpu(), USE_CUDA=False)
 			objects, sender_relations, receiver_relations, relation_info = dp
 
+			ground_truths.append(objects)
 			if idx == 0:
 				predictions.append(objects)
-			output = model(objects, sender_relations, receiver_relations, relation_info)
-			predictions.append(output)
+			if idx != len(dataloader)-1:
+				output = model(objects, sender_relations, receiver_relations, relation_info)
+				predictions.append(output)
 
 	else:
 		for idx, tup in enumerate(dataloader):
@@ -87,6 +88,8 @@ def analyze_video(video_path, use_ground_truth=False):
 			if idx == 0:
 				predictions = get_predictions(objects.cpu(), model)
 			ground_truths.append(objects)
+
+	assert len(ground_truths) == len(predictions)
 
 	return ground_truths, predictions
 
@@ -112,20 +115,20 @@ def plot_video(video_path, ground_truths, predictions, save_dir="videos"):
 
 		plot_scene(os.path.join(video_path, "scene", scenes[frame_idx]), ax1)
 
-		ground_truth_objects = ground_truths[frame_idx].squeeze_(0)
-		predicted_objects = predictions[frame_idx][0].squeeze_(0)
+		ground_truth_objects = ground_truths[frame_idx][0]
+		predicted_objects = predictions[frame_idx][0]
 		radius = 200
 		
 		for obj_idx in range(ground_truth_objects.shape[0]):
 			obj_gr = ground_truth_objects[obj_idx]
 			obj_pr = predicted_objects[obj_idx]
 
-			if obj_gr[0] == 1: # object is present
+			if obj_gr[0].item() == 1: # object is present
 				loc_x, loc_y, loc_z = obj_gr[2].item(), obj_gr[3].item(), obj_gr[4].item()
 				plot_object(ax2, loc_x, loc_y, loc_z, radius*(obj_idx+1)*0.5, colors[obj_idx], "ground truth")
 
-
-			if obj_pr[0] >= 0.5: # object is present
+			print("gr: ", obj_gr[0].item(), " pr: ",obj_pr[0].item())
+			if obj_pr[0].item() >= 0.5: # object is present
 			#if True:
 				loc_x, loc_y, loc_z = obj_pr[2].item(), obj_pr[3].item(), obj_pr[4].item()
 				plot_object(ax3, loc_x, loc_y, loc_z, radius*(obj_idx+1)*0.5, colors[obj_idx], "predicted")
