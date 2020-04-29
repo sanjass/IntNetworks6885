@@ -50,6 +50,15 @@ def get_dataloader(data, batch_size, USE_CUDA=True, object_dim=100, n_objects=5,
 
 
 
+def merge_dicts(*dict_args):
+    """
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    """
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
 
 def make_video(save_path, ims, fps=8, duration=None):
     """ 
