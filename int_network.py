@@ -57,11 +57,11 @@ def mae(predicted, target):
     mae_mean = diff.mean(dim=0)
     return mae_mean
 
-def add_vars(writer, diff, epoch):
-    writer.add_scalar("presence bit", diff[0], epoch)
-    writer.add_scalar("Occluder bit: ", diff[1], epoch)
-    for key, val in index_mapping.items():
-        writer.add_scalar(key, diff[val], epoch)
+# def add_vars(writer, diff, epoch):
+#     writer.add_scalar("presence bit", diff[0], epoch)
+#     writer.add_scalar("Occluder bit: ", diff[1], epoch)
+#     for key, val in index_mapping.items():
+#         writer.add_scalar(key, diff[val], epoch)
 
 
 

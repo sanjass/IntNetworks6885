@@ -8,6 +8,7 @@ from hyperparams import SHAPE_2_IDX, IDX_2_SHAPE
 from utils import merge_dicts
 from transformations import world2camera_coord, world2camera_rotation
 
+# the list indicates which indices in the feature vector pertain to the key
 binary_indices = {"is_present":[0,1], "is_occluder":[2,3], "is_visible":[4,5]}
 mse_indices =     {
                     "location_x":[6], "location_y":[7], "location_z":[8],
@@ -20,9 +21,8 @@ mse_indices =     {
 categorical_indices = {"shape":[21,22,23,24]}
 index_mapping = merge_dicts(binary_indices, mse_indices, categorical_indices)
 
-
-
 flatten = lambda lis: [item for sublist in lis for item in sublist]
+
 
 def get_max_num_obj(data_path, path="data/max_objects.txt"):
 	"""Get the max number of objects in a set of videos"""
@@ -74,20 +74,6 @@ def get_all_shapes(data_path, path="data/all_shapes.txt"):
 
 	return shapes
 
-# FORMAT for features of an object:
-# [present_or_not (1 or 0),  - 1
-# type of obj (occluder=1, non-occluder 0) -1
-# location (x,y,z), - 3
-# velocity (x,y,x), -3,
-# scale (x,y,z), -3
-# rotation (roll, pitch, yaw) -3,
-# speed (only for occluders), -1
-# friction, -1,
-# mass (only for obj), -1] 
-
-# index_mapping = {"location_x":2, "location_y":3, "location_z":4, "velocity_x":5, "velocity_y":6, "velocity_z":7, "scale_x":8, "scale_y":9, "scale_z":10,
-#                  "rotation_roll":11, "rotation_pitch":12, "rotation_yaw":13, "speed":14, "friction":15, "mass":16}
-
 
 def transform_features(feat, camera):
 	"""Transform x,y,z,yaw,pitch,roll coordinates for feature vector"""
@@ -109,6 +95,7 @@ def featurize(obj_dict, is_occluder, is_visible, shape, camera):
 	"""Returns a list of features for object"""
 	result = [0 for _ in range(max(flatten(index_mapping.values()))+1)]
 
+	# binary variables are represented as one-hot encoding
 	for key, val in binary_indices.items():
 		if key == "is_present":
 			result[val[0]] = 1 # obj is definitely present
@@ -123,6 +110,7 @@ def featurize(obj_dict, is_occluder, is_visible, shape, camera):
 			raise ValueError("You're wrong")
 
 
+	# encode the continious variables
 	for key, idx_value in mse_indices.items():
 		assert len(idx_value) == 1
 		idx_value = idx_value[0]
@@ -140,6 +128,7 @@ def featurize(obj_dict, is_occluder, is_visible, shape, camera):
 			 else:
 			 	result[idx_value] = obj_dict[key]
 
+	# encode the categorical variables (shape) as one-hot
 	for key, val in categorical_indices.items():
 		if key == "shape":
 			idx_rel = SHAPE_2_IDX[shape]
@@ -158,14 +147,14 @@ def get_visible_bit(video_path, frame_idx, mask_id):
 	mask = img == mask_id
 	mask[mask > 0] = 1
 	overlap = np.count_nonzero(mask)
-	if overlap >= 25:
+	if overlap >= 25: # if area greater than 25, object is visible
 		return 1
 	else:
 		return 0
 
 
 def get_free_index(objname2index):
-	"""Get free index in the obj_name:idx map"""
+	"""Get free index in the obj_name:idx map to assign to object and track it across frames"""
 	values = set(objname2index.values())
 	possible_indices = set(range(5))
 	free = [pos for pos in possible_indices if pos not in values]
@@ -173,7 +162,7 @@ def get_free_index(objname2index):
 
 
 def process_video(video_path, max_obj=5):
-	"""Returns a matrix of dim num_frames x max_obj x num_features"""
+	"""Returns a matrix of dim num_frames x max_obj x num_features encoding the video"""
 	json_path = os.path.join(video_path, 'status.json')
 	video_status = json.load(open(json_path, 'r'))
 	frames = video_status['frames']
@@ -198,7 +187,9 @@ def process_video(video_path, max_obj=5):
 					is_visible = get_visible_bit(video_path, frame_idx, frame["masks"][obj_name])
 				else:
 					is_visible = 0
+				# featurize the object
 				obj_info = featurize(frame[obj_name], is_occluder, is_visible, frame[obj_name]["shape"], camera)
+				# add the object to its index position
 				frame_info[objname2index[obj_name]] = obj_info
 
 		video_info.append(frame_info)
@@ -207,7 +198,7 @@ def process_video(video_path, max_obj=5):
 
 def run_processing(data_folder, max_obj, outfile):
 	"""Runs the video processing pipeline for data_folder. 
-	Final result has shape: num_videos x num_frames x max_obj x num_features =  (15000, 100, 5, 17) in our case"""
+	Final result has shape: num_videos x num_frames x max_obj x num_features =  (15000, 100, 5, 25) in our case"""
 	print("Starting processing for data in {}...".format(data_folder))
 	final_result = []
 	pbar = tqdm(total=len(list(os.listdir(data_folder))))

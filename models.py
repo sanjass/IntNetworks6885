@@ -93,7 +93,7 @@ class InteractionNetwork(nn.Module):
             receiver_relations.unsqueeze_(0)
         if len(relation_info.shape) == 2:
             relation_info.unsqueeze_(0)
-        senders   = sender_relations.permute(0, 2, 1).bmm(objects)
+        senders   = sender_relations.permute(0, 2, 1).bmm(objects) # bmm - batch matrix multiply
         receivers = receiver_relations.permute(0, 2, 1).bmm(objects)
         effects = self.relational_model(torch.cat([senders, receivers, relation_info], 2))
         effect_receivers = receiver_relations.bmm(effects)
