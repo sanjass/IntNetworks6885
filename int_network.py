@@ -45,7 +45,7 @@ def validate(validation_loader, model):
     for dp, target in validation_loader:
         objects, sender_relations, receiver_relations, relation_info = dp
         predicted = interaction_network(objects, sender_relations, receiver_relations, relation_info)
-        calculate_total_loss(predicted, target)
+        loss = calculate_total_loss(predicted, target)
         #loss = criterion(predicted, target)  
         losses.append(loss.item())
     return np.mean(losses)

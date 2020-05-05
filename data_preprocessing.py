@@ -173,6 +173,8 @@ def process_video(video_path, max_obj=5):
 	for frame_idx, frame in enumerate(frames):
 		# initialize to empty features for all objects
 		frame_info = [[0 for _ in range(max(flatten(index_mapping.values()))+1)] for _ in range(max_obj)]
+		for obj_fr in frame_info:
+			obj_fr[1] = 1
 		for _, obj_name in enumerate(frame):
 			if obj_name != "masks":
 				is_occluder = "occluder" in obj_name.lower()

@@ -37,8 +37,8 @@ def world2camera_coord(location, camera):
             [-Cos[a] Sin[b]  -Sin[a] Sin[b]   Cos[b] ]
         where a = yaw, b = pitch and c = roll = 0
         """
-        if roll != 0:
-        	print("WARNING: roll is not 0, but code expects it to be 0")
+        # if roll != 0:
+        # 	print("WARNING: roll is not 0, but code expects it to be 0")
         #assert roll == 0
         x, y, z = p_w[0] - c["x"], p_w[1] - c["y"], p_w[2] - c["z"]  # P_w - C
         if ignore_pitch:
