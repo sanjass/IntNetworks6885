@@ -16,7 +16,7 @@ from transformations import rotate_vector
 
 
 
-ckpt_to_use = "ckpts/ckpt_new24_98.p"
+ckpt_to_use = "ckpts/ckpt_new24_92.p"
 
 def plot_object(ax, center_x, center_y, center_z, rot_pitch, rot_yaw, rot_roll, radius, color, title):
 
@@ -166,7 +166,7 @@ def plot_video(video_path, ground_truths, predictions, save_dir="videos"):
 
 if __name__ == "__main__":
 	print("Using ckpts: ", ckpt_to_use)
-	video_path = "../intphys/train/15000"
+	video_path = "../intphys/train/00001"
 	ground_truths, predictions = analyze_video(video_path, use_ground_truth=True)
 	# print("ground truths: ",ground_truths)
 	# print("predictions : ", predictions)

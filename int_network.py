@@ -67,9 +67,16 @@ def mae(predicted, target):
 
 n_epoch = 200
 batches_per_epoch = 100
-loss_methods = {k: nn.MSELoss(reduction='mean') for k in mse_indices}
-loss_methods.update({k: nn.CrossEntropyLoss(reduction='mean') for k in binary_indices})
-loss_methods.update({k: nn.CrossEntropyLoss(reduction='mean') for k in categorical_indices})
+loss_methods = {k: nn.MSELoss(reduction='none') for k in mse_indices}
+loss_methods.update({k: nn.CrossEntropyLoss(reduction='none') for k in binary_indices})
+loss_methods.update({k: nn.CrossEntropyLoss(reduction='none') for k in categorical_indices})
+
+
+def is_present_mask(is_present_target):
+    
+    is_present = is_present_target[:,0] == 1
+    is_present == is_present.float()
+    return is_present
 
 
 def calculate_total_loss(predicted, target):
@@ -78,18 +85,31 @@ def calculate_total_loss(predicted, target):
     # return criterion(predicted, target)
 
     loss = None
+    mask = None
 
     for key, val in index_mapping.items():
+        if key == "is_present":
+            cur_target = target[:,:,val[0]:val[-1]+1].reshape(-1,len(val))
+            mask = is_present_mask(cur_target)
+            break
+
+    denominator = mask.sum()
+    for key, val in index_mapping.items():
         
-        cur_criterion = loss_methods[key]
         cur_target = target[:,:,val[0]:val[-1]+1].reshape(-1,len(val))
+        cur_criterion = loss_methods[key]
+        
+
         if "CrossEntropyLoss" in str(cur_criterion):
             _, cur_target = cur_target.max(dim=1)
             cur_target = cur_target.long()
 
         cur_predicted = predicted[:,:,val[0]:val[-1]+1].reshape(-1, len(val))
         cur_loss = cur_criterion(cur_predicted, cur_target)
-        
+        cur_loss = (mask * cur_loss).sum()
+        cur_loss = cur_loss / denominator if denominator > 0 else cur_loss
+
+
         if loss is None:
             loss = cur_loss
         else:
