@@ -7,7 +7,7 @@ relation_dim = 1
 
 effect_dim = 100 #effect's vector size
 
-batch_size = 4092
+batch_size =  4092# 4092
 USE_CUDA = True
 
 SHAPE_2_IDX = {'Cone':0, 'Cube':1, 'Sphere':2, "Occluder":3}

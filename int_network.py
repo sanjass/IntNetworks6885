@@ -24,7 +24,7 @@ from torch.utils.tensorboard import SummaryWriter
 writer = SummaryWriter()
 
 data = np.load(os.path.join("data","featurized_train_24.npy"))
-
+#data = data[:10]
 print("Data shape: ", data.shape) 
 train_dataloader, validation_dataloader = get_dataloader(data, batch_size, USE_CUDA, object_dim, n_objects, relation_dim)
 
@@ -83,8 +83,8 @@ def calculate_total_loss(predicted, target):
 
     # criterion = nn.MSELoss(reduction='mean')
     # return criterion(predicted, target)
-
-    loss = None
+    loss_dict = dict()
+    loss = 0
     mask = None
 
     for key, val in index_mapping.items():
@@ -95,26 +95,34 @@ def calculate_total_loss(predicted, target):
 
     denominator = mask.sum()
     for key, val in index_mapping.items():
+        cur_criterion = loss_methods[key]
+
+        # if "CrossEntropyLoss" in str(cur_criterion):
+        #     continue
         
         cur_target = target[:,:,val[0]:val[-1]+1].reshape(-1,len(val))
-        cur_criterion = loss_methods[key]
         
-
         if "CrossEntropyLoss" in str(cur_criterion):
             _, cur_target = cur_target.max(dim=1)
             cur_target = cur_target.long()
 
         cur_predicted = predicted[:,:,val[0]:val[-1]+1].reshape(-1, len(val))
         cur_loss = cur_criterion(cur_predicted, cur_target)
-        cur_loss = (mask * cur_loss).sum()
+        # print("\nkey: ", key)
+        # print("predicted: ", cur_predicted[0])
+        # print("cur target: ", cur_target[0].item())
+        # print("loss: ", cur_loss[0].item())
+        cur_loss = cur_loss.reshape(-1)
+        assert cur_loss.shape == mask.shape
+        cur_loss = (mask * cur_loss)
+     
+        cur_loss = cur_loss.sum()
+        
         if denominator > 0:
             cur_loss /= denominator
 
-
-        if loss is None:
-            loss = cur_loss
-        else:
-            loss +=  cur_loss
+        loss_dict[key] = cur_loss.item()
+        loss +=  cur_loss
     return loss
 
 
