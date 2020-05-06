@@ -107,7 +107,8 @@ def calculate_total_loss(predicted, target):
         cur_predicted = predicted[:,:,val[0]:val[-1]+1].reshape(-1, len(val))
         cur_loss = cur_criterion(cur_predicted, cur_target)
         cur_loss = (mask * cur_loss).sum()
-        cur_loss = cur_loss / denominator if denominator > 0 else cur_loss
+        if denominator > 0:
+            cur_loss /= denominator
 
 
         if loss is None:
