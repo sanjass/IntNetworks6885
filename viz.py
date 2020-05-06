@@ -16,7 +16,7 @@ from transformations import rotate_vector
 
 
 
-ckpt_to_use = "ckpts/ckpt_new24_92.p"
+ckpt_to_use = "ckpts/ckpt_new24_91.p"
 
 def plot_object(ax, center_x, center_y, center_z, rot_pitch, rot_yaw, rot_roll, radius, color, title):
 

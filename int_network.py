@@ -119,7 +119,7 @@ def calculate_total_loss(predicted, target):
 
 all_train_losses = []
 all_valid_losses = []
-best_val = 100000
+best_val = 1000000000
 for epoch in tqdm(range(1,n_epoch+1)):
     losses = []
     running_mae = torch.zeros(data.shape[-1]).to(device)
@@ -140,22 +140,24 @@ for epoch in tqdm(range(1,n_epoch+1)):
     # add_vars(writer, running_mae, epoch)
     train_loss = np.mean(losses)
     valid_loss = validate(validation_dataloader, interaction_network)  
-    writer.add_scalars("Losses", {'train_mse': train_loss, 'valid_mse' : valid_loss}, epoch)
+    print("valid_loss: ", valid_loss)
+    writer.add_scalars("Losses", {'train_loss': train_loss, 'valid_loss' : valid_loss}, epoch)
     
     all_train_losses.append(train_loss)
     all_valid_losses.append(valid_loss) 
 
     if epoch > 3:
-        plt.plot(np.arange(3,epoch), np.array(all_train_losses[3:]), color="b", label="train MSE")
-        plt.plot(np.arange(3,epoch), np.array(all_valid_losses[3:]), color="r", label="valid MSE")
-        plt.title('Epoch %s: train MSE %s, validation MSE %s' % (epoch, train_loss, valid_loss))
+        plt.plot(np.arange(3,epoch), np.array(all_train_losses[3:]), color="b", label="train loss")
+        plt.plot(np.arange(3,epoch), np.array(all_valid_losses[3:]), color="r", label="valid loss")
+        plt.title('Epoch %s: train loss %s, validation loss %s' % (epoch, train_loss, valid_loss))
         plt.xlabel("epochs")
-        plt.ylabel("MSE")
+        plt.ylabel("loss")
         plt.legend()
         #plt.show()
         plt.savefig("plots/plot_24.png")
         plt.close()
     if valid_loss < best_val:
+        print("Saving ckpt epoch ", epoch)
         torch.save({
                         'epoch': epoch,
                         'model_state_dict': interaction_network.state_dict(),
