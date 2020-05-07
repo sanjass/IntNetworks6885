@@ -13,6 +13,16 @@ import numpy as np
 from PIL import Image
 
 
+def build_recursive_case_paths(input_folder, cases):
+    if "scene" not in os.listdir(input_folder):
+        to_recurse = sorted(list(os.path.join(input_folder, sub_folder) for sub_folder in os.listdir(input_folder)))
+        for new_folder in to_recurse:
+            if os.path.isdir(new_folder):
+                build_recursive_case_paths(new_folder, cases)
+    else:
+        cases.append(input_folder)
+    return cases
+
 
 def load_model(ckpt_path):
 	model = InteractionNetwork(n_objects, object_dim, n_relations, relation_dim, effect_dim)

@@ -16,7 +16,8 @@ from transformations import rotate_vector
 
 
 
-ckpt_to_use = "ckpts/ckpt_new24_91.p"
+#ckpt_to_use = "ckpts/ckpt_new24_200.p"
+ckpt_to_use = "ckpts/bcp_ckpt_new24_140.p"
 
 def plot_object(ax, center_x, center_y, center_z, rot_pitch, rot_yaw, rot_roll, radius, color, title):
 
@@ -75,7 +76,7 @@ def get_predictions(initial_frame_objects, model=None):
 	return predictions
 
 
-def analyze_video(video_path, use_ground_truth=False):
+def analyze_video(video_path, use_ground_truth=True):
 	model = load_model(ckpt_to_use)
 	video_info = process_video(video_path)
 	data = np.array([video_info])
