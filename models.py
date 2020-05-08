@@ -100,7 +100,11 @@ class InteractionNetwork(nn.Module):
 #        predicted = self.object_model(torch.cat([objects, effect_receivers], 2))
        
         predicted = self.object_model(torch.cat([objects, effect_receivers], 2)).reshape(-1, self.n_objects, self.object_dim)
+        val = [21,22,23,24]
+        predicted[:,:,val[0]:val[-1]+1] = objects[:,:,val[0]:val[-1]+1]
 
+        val = [0,1]
+        predicted[:,:,val[0]:val[-1]+1] = objects[:,:,val[0]:val[-1]+1]
 
         return predicted
 

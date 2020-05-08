@@ -30,25 +30,27 @@ def compare_objects_valid(obj_true, obj_pred):
 	# 	else:
 	# 		raise ValueError("Should never get here")
 
-	# for key, val in categorical_indices.items():
-	# 	if key == "shape":
-	# 		shape_log = F.log_softmax(obj_pred[val[0]:val[-1]+1], dim=0) 
-	# 		_, shape_bit = shape_log.max(dim=0)
-	# 		_, ground_truth_shape = obj_true[val[0]:val[-1]+1].max(dim=0)
-	# 		if shape_bit != ground_truth_shape:
-	# 			reason = f"Predicted shape is {IDX_2_SHAPE[shape_bit.item()]}, but ground truth is {IDX_2_SHAPE[ground_truth_shape.item()]}"
-	# 			return False, reason
-	# 	else:
-	# 		raise ValueError("Should never get here")
+	
 
 	for key, val in mse_indices.items():
 		if "location" in key:
 			true_loc = obj_true[val[0]]
 			pred_loc = obj_pred[val[0]]
 			abs_diff = abs(true_loc - pred_loc)
-			if abs_diff > 100:
+			if abs_diff > 200:
 				reason = f"Predicted {key} is {pred_loc}, but ground truth is {true_loc}"
 				return False, reason
+
+	for key, val in categorical_indices.items():
+		if key == "shape":
+			shape_log = F.log_softmax(obj_pred[val[0]:val[-1]+1], dim=0) 
+			_, shape_bit = shape_log.max(dim=0)
+			_, ground_truth_shape = obj_true[val[0]:val[-1]+1].max(dim=0)
+			if shape_bit != ground_truth_shape:
+				reason = f"Predicted shape is {IDX_2_SHAPE[shape_bit.item()]}, but ground truth is {IDX_2_SHAPE[ground_truth_shape.item()]}"
+				return False, reason
+		else:
+			raise ValueError("Should never get here")
 
 	return True, "No anomalies detected"
 
@@ -59,12 +61,16 @@ def compare_objects_valid(obj_true, obj_pred):
 
 def dev_meta():
 	case_names = build_recursive_case_paths("../intphys/dev_meta", [])
-	meta_info = {}
+	
+	total = len(case_names)
+	correct = 0
+	incorrect = {False:0, True:0}
 	for video_path in case_names:
+		meta_info = {}
 		ground_truths, predictions = analyze_video(video_path, use_ground_truth=True)
 		ground_truth_label =json.load(open(video_path +"/status.json", 'r'))["header"]["is_possible"]
 		possible = True # by default a video is possible
-		print("video: ", video_path)
+		print("\nvideo: ", video_path)
 
 		# for key, val in mse_indices.items():
 		# 	print("\nkey: ", key)
@@ -90,6 +96,7 @@ def dev_meta():
 		
 
 		if possible == ground_truth_label:
+			correct += 1 
 			print(f"Correct prediction! Predicted and ground truth are {possible}")
 			print("Reason: ", reason)
 			print("Meta info: ", meta_info)
@@ -97,8 +104,12 @@ def dev_meta():
 			print(f"Incorrect, predicted {possible}, but ground truth label is {ground_truth_label}")
 			print("Reason: ", reason)
 			print("Meta info: ", meta_info)
+			incorrect[ground_truth_label] += 1
+	print("correct: ", correct)
+	print("Total: ", total)
+	print("Incorrect: ", incorrect)
 
-		break
+		
 
 
 

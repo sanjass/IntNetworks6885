@@ -112,6 +112,10 @@ def calculate_total_loss(predicted, target):
     denominator = mask.sum()
     for key, val in index_mapping.items():
         cur_criterion = loss_methods[key]
+        if key == "is_present":
+            print("skipping: ", key)
+            continue
+
         cur_target = target[:,:,val[0]:val[-1]+1].reshape(-1,len(val))
         
         if "CrossEntropyLoss" in str(cur_criterion):
